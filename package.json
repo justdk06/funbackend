@@ -1,18 +1,23 @@
 {
-  "name": "my-js-app",
+  "name": "backend",
   "version": "1.0.0",
-  "description": "A Basic app to deploy",
+  "description": "a basic app to deploy",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/justdk06/funbackend.git"
   },
   "keywords": [
-    "node"
+    "node",
+    "backend"
   ],
-  "author": "Dharmendra Kumar",
+  "author": "dharmendra kumar",
   "license": "ISC",
-  "dependencies": {
-    "dotenv": "^16.5.0",
-    "express": "^5.1.0"
-  }
+  "bugs": {
+    "url": "https://github.com/justdk06/funbackend/issues"
+  },
+  "homepage": "https://github.com/justdk06/funbackend#readme"
 }
