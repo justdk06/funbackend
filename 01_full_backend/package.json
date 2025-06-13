@@ -2,9 +2,10 @@
   "name": "backend",
   "version": "1.0.0",
   "description": "a basic app to deploy",
+  "type": "module",
   "main": "index.js",
   "scripts": {
-    "start": "node index.js"
+    "dev": "nodemon src/index.js"
   },
   "repository": {
     "type": "git",
@@ -24,5 +25,7 @@
     "dotenv": "^16.5.0",
     "express": "^5.1.0"
   },
-  "devDependencies": {}
+  "devDependencies": {
+    "nodemon": "^3.1.10"
+  }
 }
