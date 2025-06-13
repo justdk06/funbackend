@@ -3,7 +3,7 @@ import connectDB from './db/index.js';
 import app from './app.js'; // ✅ Import the Express app from your app.js file
 
 dotenv.config({
-  path: './env'
+  path: './.env'
 });
 
 connectDB()
