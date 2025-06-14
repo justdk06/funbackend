@@ -4,6 +4,7 @@ import { User } from '../models/user.models.js';
 import { uploadOnCloudinary } from '../utils/cloudinary.js';
 import { ApiResponse } from '../utils/ApiResponse.js';
 import jwt from 'jsonwebtoken';
+import mongoose from 'mongoose';
 
 // Generate Tokens
 const generateAccessAndRefreshTokens = async (userId) => {
@@ -360,3 +361,58 @@ export const getUserChannelProfile = asyncHandler(async(req, res) =>{
         new ApiResponse(200, channel[0], 'User channel fetched successfully')
     )
 })
+
+export const getWatchHistory = asyncHandler(async (req, res) => {
+    const user = await User.aggregate([
+        {
+            $match: {
+                _id: new mongoose.Types.ObjectId(req.user._id)
+            }
+        },
+        {
+            $lookup: {
+                from: 'videos',
+                localField: 'watchHistory',
+                foreignField: '_id',
+                as: 'watchHistory',
+                pipeline: [
+                    {
+                        $lookup: {
+                            from: 'users',
+                            localField: 'owner',
+                            foreignField: '_id',
+                            as: 'owner'
+                        }
+                    },
+                    {
+                        $addFields: {
+                            owner: { $first: '$owner' }
+                        }
+                    },
+                    {
+                        $project: {
+                            title: 1,
+                            thumbnail: 1,
+                            createdAt: 1,
+                            owner: {
+                                fullName: 1,
+                                username: 1,
+                                avatar: 1
+                            }
+                        }
+                    }
+                ]
+            }
+        }
+    ]);
+
+    if (!user?.length || !user[0]?.watchHistory) {
+        throw new ApiError(404, 'No watch history found');
+    }
+
+    return res
+    .status(200)
+    .json(
+        new ApiResponse(200, user[0].watchHistory, 'Watch history fetched successfully')
+    );
+});
