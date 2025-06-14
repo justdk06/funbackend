@@ -6,7 +6,6 @@ import { ApiResponse } from '../utils/ApiResponse.js';
 import jwt from 'jsonwebtoken';
 import mongoose from 'mongoose';
 
-// Generate Tokens
 const generateAccessAndRefreshTokens = async (userId) => {
     try {
         const user = await User.findById(userId);
@@ -22,7 +21,6 @@ const generateAccessAndRefreshTokens = async (userId) => {
     }
 };
 
-// Register User
 export const registerUser = asyncHandler(async (req, res) => {
     const { fullName, email, username, password } = req.body;
 
@@ -72,7 +70,6 @@ export const registerUser = asyncHandler(async (req, res) => {
     );
 });
 
-// Login User
 export const loginUser = asyncHandler(async (req, res) => {
     const { email, username, password } = req.body;
 
@@ -119,13 +116,10 @@ export const loginUser = asyncHandler(async (req, res) => {
         );
 });
 
-// Logout User
 export const logoutUser = asyncHandler(async (req, res) => {
     await User.findByIdAndUpdate(
         req.user._id,
-        {
-            $set: { refreshToken: undefined }
-        },
+        { $set: { refreshToken: undefined } },
         { new: true }
     );
 
@@ -142,7 +136,6 @@ export const logoutUser = asyncHandler(async (req, res) => {
     );
 });
 
-// Refresh Access Token
 export const refreshAccessToken = asyncHandler(async (req, res) => {
     const incomingRefreshToken = req.cookies.refreshToken || req.body.refreshToken;
 
@@ -185,7 +178,6 @@ export const refreshAccessToken = asyncHandler(async (req, res) => {
     }
 });
 
-// Change Password
 export const changeCurrentPassword = asyncHandler(async (req, res) => {
     const { oldPassword, newPassword, confPassword } = req.body;
 
@@ -206,14 +198,12 @@ export const changeCurrentPassword = asyncHandler(async (req, res) => {
     return res.status(200).json(new ApiResponse(200, {}, 'Password changed successfully'));
 });
 
-// Get Current User
-export const getCurrentStatus = asyncHandler(async (req, res) => {
+export const getCurrentUser = asyncHandler(async (req, res) => {
     return res
         .status(200)
         .json(new ApiResponse(200, req.user, 'Current user fetched successfully'));
 });
 
-// Update Account Details
 export const updateAccountDetails = asyncHandler(async (req, res) => {
     const { fullName, email } = req.body;
 
@@ -223,12 +213,7 @@ export const updateAccountDetails = asyncHandler(async (req, res) => {
 
     const user = await User.findByIdAndUpdate(
         req.user?._id,
-        {
-            $set: {
-                fullName,
-                email
-            }
-        },
+        { $set: { fullName, email } },
         { new: true }
     ).select('-password');
 
@@ -237,7 +222,6 @@ export const updateAccountDetails = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, user, 'Account details updated successfully'));
 });
 
-// Update User Avatar
 export const updateUserAvatar = asyncHandler(async (req, res) => {
     const avatarLocalPath = req.files?.avatar?.[0]?.path;
 
@@ -253,9 +237,7 @@ export const updateUserAvatar = asyncHandler(async (req, res) => {
 
     const user = await User.findByIdAndUpdate(
         req.user?._id,
-        {
-            $set: { avatar: avatar.url }
-        },
+        { $set: { avatar: avatar.url } },
         { new: true }
     ).select('-password');
 
@@ -264,7 +246,6 @@ export const updateUserAvatar = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, user, 'Avatar image updated successfully'));
 });
 
-// Update User Cover Image
 export const updateUserCoverImage = asyncHandler(async (req, res) => {
     const coverImageLocalPath = req.files?.coverImage?.[0]?.path;
 
@@ -280,9 +261,7 @@ export const updateUserCoverImage = asyncHandler(async (req, res) => {
 
     const user = await User.findByIdAndUpdate(
         req.user?._id,
-        {
-            $set: { coverImage: coverImage.url }
-        },
+        { $set: { coverImage: coverImage.url } },
         { new: true }
     ).select('-password');
 
@@ -291,16 +270,16 @@ export const updateUserCoverImage = asyncHandler(async (req, res) => {
         .json(new ApiResponse(200, user, 'Cover image updated successfully'));
 });
 
-export const getUserChannelProfile = asyncHandler(async(req, res) =>{
-    const {username} = req.params
+export const getUserChannelProfile = asyncHandler(async (req, res) => {
+    const { username } = req.params;
 
-    if(!username?.trim()){
-        throw new ApiError(400, 'username is missing')
+    if (!username?.trim()) {
+        throw new ApiError(400, 'username is missing');
     }
 
     const channel = await User.aggregate([
         {
-            $match:{
+            $match: {
                 username: username?.toLowerCase()
             }
         },
@@ -313,7 +292,7 @@ export const getUserChannelProfile = asyncHandler(async(req, res) =>{
             }
         },
         {
-            $lookup:{
+            $lookup: {
                 from: 'subscriptions',
                 localField: '_id',
                 foreignField: 'subscriber',
@@ -322,15 +301,11 @@ export const getUserChannelProfile = asyncHandler(async(req, res) =>{
         },
         {
             $addFields: {
-                subscribersCount:{
-                    $size: '$subscribers'
-                },
-                channelsSubscribedToCount:{
-                    $size: '$subscribedTo'
-                },
-                isSubscribed:{
-                    $cond:{
-                        if:{$in: [req.user?._id,'$subscribers.subscriber']},
+                subscribersCount: { $size: '$subscribers' },
+                channelsSubscribedToCount: { $size: '$subscribedTo' },
+                isSubscribed: {
+                    $cond: {
+                        if: { $in: [req.user?._id, '$subscribers.subscriber'] },
                         then: true,
                         else: false
                     }
@@ -338,29 +313,27 @@ export const getUserChannelProfile = asyncHandler(async(req, res) =>{
             }
         },
         {
-            $project:{
-                fullName:1,
+            $project: {
+                fullName: 1,
                 username: 1,
                 subscribersCount: 1,
-                channelsSubscribedToCount:1,
+                channelsSubscribedToCount: 1,
                 isSubscribed: 1,
                 avatar: 1,
                 coverImage: 1,
                 email: 1
             }
-        } 
-    ])
+        }
+    ]);
 
-    if (!channel?.length){
-        throw new ApiError(404, 'channel does not exists')
+    if (!channel?.length) {
+        throw new ApiError(404, 'channel does not exist');
     }
 
     return res
-    .status(200)
-    .json(
-        new ApiResponse(200, channel[0], 'User channel fetched successfully')
-    )
-})
+        .status(200)
+        .json(new ApiResponse(200, channel[0], 'User channel fetched successfully'));
+});
 
 export const getWatchHistory = asyncHandler(async (req, res) => {
     const user = await User.aggregate([
@@ -411,8 +384,6 @@ export const getWatchHistory = asyncHandler(async (req, res) => {
     }
 
     return res
-    .status(200)
-    .json(
-        new ApiResponse(200, user[0].watchHistory, 'Watch history fetched successfully')
-    );
+        .status(200)
+        .json(new ApiResponse(200, user[0].watchHistory, 'Watch history fetched successfully'));
 });
